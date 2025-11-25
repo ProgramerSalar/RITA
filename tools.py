@@ -1,5 +1,5 @@
-import re, os, glob, json
-import pandas as pd 
+import re, os, json
+
 
 def clean_srt_file(file_path):
 
@@ -80,7 +80,9 @@ def generate_dataset_json(folder_path, output_json_name="../dataset_map.json"):
                     "video": None,
                     "metadata": None,
                     "Image": None,
-                    "subtitle": None
+                    "subtitle": None,
+                    "thumbnail": None
+                  
                 }
             
             # Store the absolute path
@@ -100,19 +102,11 @@ def generate_dataset_json(folder_path, output_json_name="../dataset_map.json"):
     except Exception as e:
         print(f"Error saving JSON: {e}")
         return []
-
-
-if __name__ == "__main__":
-    # --- USAGE ---
-    folder_path = "./math_shorts_dataset/rational_number_math"
-
-    # Run the function
-    dataset = generate_dataset_json(folder_path)
-
-    json_path = "/home/manish/Desktop/projects/rita/math_shorts_dataset/dataset_map.json"
-
+    
+def Indent_json_data(json_path, folder_path):
     with open(json_path, 'r') as f:
         data = json.load(f)
+        json_format_list = []
         for file in data:
 
             # caption capture 
@@ -124,12 +118,61 @@ if __name__ == "__main__":
 
             
             # capture json 
-            json_path = file['metadata']
-            json_path = str(json_path)
-            if json_path.endswith('.json'):
-                with open(json_path, 'r') as f:
-                    json_data = json.load(f)
-                    json_title = json_data['title']
+            new_json_path = file['metadata']
+            new_json_path = str(new_json_path)
+            if new_json_path.endswith('.info.json'):
+                
+                with open(new_json_path, 'r') as f:
+                    new_json_data = json.load(f)
+                    json_title = new_json_data['title']
+            # print(json_title)
+
+            json_format = {
+                "id": file["id"],
+                "video": file["video"],
+                "title": json_title,
+                "subtitle": caption,
+                "Image": file["thumbnail"],
+                "metadata": file["metadata"],
+            }
+            json_format_list.append(json_format)
+       
+
+        # json_format = list(json_format.values())
+        split_dir = folder_path.split("/")[2]
+        output_path = os.path.join(f"./{split_dir}_dataset.json")
+        
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(json_format_list, f, indent=4)
+
+        print(f"Successfully created the json: {output_path}")
+
+
+
+
+
+if __name__ == "__main__":
+    # --- USAGE ---
+    folder_path = "./math_shorts_dataset/rational_number_math"
+    
+
+    generate_dataset_json(folder_path)
+    json_path = folder_path.split('/')[1]
+    json_path = f"./{json_path}/dataset_map.json"
+    Indent_json_data(json_path, folder_path)
+    
+
+    
+        
+            
+
+            
+                        
+                
+        
+                
+
+            
 
             
 
