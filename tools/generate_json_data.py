@@ -1,4 +1,4 @@
-import re, os, json
+import re, os, json, glob
 
 
 def clean_srt_file(file_path):
@@ -18,11 +18,20 @@ def clean_srt_file(file_path):
     return full_text
     
 
-def generate_dataset_json(folder_path, output_json_name="../dataset_map.json"):
+def generate_dataset_json(folder_path, output_json_name = "./dataset_map.json"):
     """
     Scans a folder for related video files (mp4, jpg, json, srt),
     groups them by common filename, and creates a consolidated JSON file.
     """
+    json_path = folder_path.split('/')[2]
+    base_path = folder_path.split('/')[1]
+    if not os.path.exists(f"{base_path}/json"):
+        os.makedirs(f"{base_path}_json", exist_ok=True)
+
+    json_path = f"./{base_path}_json/{json_path}_dataset_map.json"
+    output_json_name = json_path
+
+
     if not os.path.exists(folder_path):
         print(f"Error: Folder not found at {folder_path}")
         return
@@ -92,7 +101,8 @@ def generate_dataset_json(folder_path, output_json_name="../dataset_map.json"):
     dataset_list = list(grouped_data.values())
 
     # 4. Save to JSON file
-    output_path = os.path.join(folder_path, output_json_name)
+    output_path = os.path.join(output_json_name)
+
     try:
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(dataset_list, f, indent=4)
@@ -107,8 +117,10 @@ def Indent_json_data(json_path, folder_path):
     with open(json_path, 'r') as f:
         data = json.load(f)
         json_format_list = []
+        caption = ''
+        json_title = ''
         for file in data:
-
+            # print(file['subtitle'])
             # caption capture 
             caption_path = file['subtitle']
             capation_path = str(caption_path)
@@ -123,7 +135,11 @@ def Indent_json_data(json_path, folder_path):
             if new_json_path.endswith('.info.json'):
                 
                 with open(new_json_path, 'r') as f:
-                    new_json_data = json.load(f)
+                    try:
+                        new_json_data = json.load(f)
+                    except Exception as e:
+                        print(f'getting the error.... {e}')
+
                     json_title = new_json_data['title']
             # print(json_title)
 
@@ -136,59 +152,118 @@ def Indent_json_data(json_path, folder_path):
                 "metadata": file["metadata"],
             }
             json_format_list.append(json_format)
+
+        print(json_path)
        
 
-        # json_format = list(json_format.values())
-        split_dir = folder_path.split("/")[2]
-        output_path = os.path.join(f"./{split_dir}_dataset.json")
-        
+        if not os.path.exists("./Indent_json"):
+            os.makedirs("./Indent_json", exist_ok=True)
+    
+        split_dir = json_path.split("/")[2]
+        split_dir = split_dir.split('.')[0]
+        output_path = os.path.join(f"./Indent_json/{split_dir}_dataset.json")
+    
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(json_format_list, f, indent=4)
 
         print(f"Successfully created the json: {output_path}")
 
 
+def Run_Generation(folder_path):
+    for root, dirs, files in os.walk(folder_path):
+
+        if root == folder_path:
+            print("Next Path..")
+        else:
+            folder_path = root
+            generate_dataset_json(folder_path)
+
+
+def Indent_Merge(folder_path):
+
+    folder_path_json = f"{folder_path}_json"
+    for root, dirs, files in os.walk(folder_path_json):
+        for file in files:
+            path = os.path.join(str(root), str(file)) 
+            Indent_json_data(path, folder_path_json)
+    
+
+    json_path = "./Indent_json"
+
+    json_files = glob.glob(os.path.join(json_path, "*.json"))
+    json_data_list = []
+    for path in json_files:
+        with open(path, 'r') as f:
+            try:
+                data = json.load(f)
+            except Exception as e:
+                print(f"error getting {e}")
+            json_data_list.extend(data)
+
+    output_file_path = "merged_part1_data.json"
+    with open(output_file_path, 'w', encoding='utf-8') as f:
+        json.dump(json_data_list, f, indent=4)
+    print(f"successfully created the json data.")
 
 
 
 if __name__ == "__main__":
-    # --- USAGE ---
-    folder_path = "./math_shorts_dataset/rational_number_math"
     
-
-    generate_dataset_json(folder_path)
-    json_path = folder_path.split('/')[1]
-    json_path = f"./{json_path}/dataset_map.json"
-    Indent_json_data(json_path, folder_path)
-    
-
-    
-        
-            
-
-            
-                        
-                
-        
-                
-
-            
-
-            
-
-                
+    # so only change the `folder_path` 
+    folder_path = "./part_11"
 
 
+
+
+    # for root, dirs, files in os.walk(folder_path):
+
+    #     if root == folder_path:
+    #         print("Next Path..")
+    #     else:
+    #         folder_path = root
+    #         generate_dataset_json(folder_path)
+
+
+    Run_Generation(folder_path)
+    Indent_Merge(folder_path)
 
         
+    
+    print('------------------------------------------------------')
+    
 
+    # folder_path_json = f"{folder_path}_json"
+    # for root, dirs, files in os.walk(folder_path_json):
+    #     for file in files:
+    #         path = os.path.join(str(root), str(file)) 
+    #         Indent_json_data(path, folder_path_json)
+    
 
+    # json_path = "./Indent_json"
 
+    # json_files = glob.glob(os.path.join(json_path, "*.json"))
+    # json_data_list = []
+    # for path in json_files:
+    #     with open(path, 'r') as f:
+    #         data = json.load(f)
+    #         json_data_list.extend(data)
 
+    # output_file_path = "merged_part1_data.json"
+    # with open(output_file_path, 'w', encoding='utf-8') as f:
+    #     json.dump(json_data_list, f, indent=4)
+    # print(f"successfully created the json data.")
 
-
+    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
     
 
     
 
+            
+        
 
+
+        
+            
+    
+
+    
