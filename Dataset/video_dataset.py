@@ -12,11 +12,7 @@ class VideoDataset(Dataset):
                  num_frames=16,
                  ):
         
-        print(f" video_dir: {video_dir}")
-        check_video_path = glob.glob(os.path.join(video_dir, "*.mp4"))
-        print("check", check_video_path)
-
-
+        
         self.video_files = glob.glob(pathname=(os.path.join(video_dir, '*.mp4')))
         self.num_frames = num_frames
         
@@ -83,7 +79,8 @@ class VideoDataset(Dataset):
 
 
 if __name__ == "__main__":
-    dir = "/content/vae_from_scratch/video_vae/dataset/video"
+    # dir = "/content/vae_from_scratch/video_vae/dataset/video"
+    dir = "../part_1/computational_geomet"
     dataset = VideoDataset(video_dir=dir)
     # dataset.__getitem__(0)
 
