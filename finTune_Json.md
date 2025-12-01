@@ -243,3 +243,22 @@ To make this dataset useful for training a video model, you should apply the fol
 | **`Image`** | High (Visual snapshot) | **Essential** (Use to generate better captions) |
 
 If you proceed with the current `subtitle` data, your model will likely struggle to generate coherent visuals because the text prompts (inputs) rarely match the visual outputs.
+
+
+
+
+
+
+
+
+
+# The FineTune.json file.
+```
+    Based on the analysis of your FineTune_json_data.json file, I found the following issues:
+
+    Capitalization Mismatch: Your file uses Capitalized keys (Id, Video, Subtitle, Image), but your previous script was looking for lowercase keys (id, video, subtitle). This is why it found "0 valid entries."
+
+    Duplicate Data: There are 15,279 duplicate entries (clones) sharing the same ID.
+
+    "False" Subtitles: There are 928 entries where the subtitle is just noise (e.g., [music], foreign, [Applause]) or completely empty.
+```
